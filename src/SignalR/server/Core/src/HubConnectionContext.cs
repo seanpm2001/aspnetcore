@@ -36,6 +36,7 @@ public partial class HubConnectionContext
     private readonly ISystemClock _systemClock;
     private readonly CancellationTokenRegistration _closedRegistration;
     private readonly CancellationTokenRegistration? _closedRequestedRegistration;
+    private readonly MessageBuffer _messageBuffer = new();
 
     private StreamTracker? _streamTracker;
     private long _lastSendTick;
@@ -49,6 +50,10 @@ public partial class HubConnectionContext
     private long _receivedMessageElapsedTicks;
     private long _receivedMessageTick;
     private ClaimsPrincipal? _user;
+
+    internal bool UseAcks;
+    private long _sequenceId;
+    private long _latestReceivedSequenceId = long.MinValue;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HubConnectionContext"/> class.
@@ -259,9 +264,7 @@ public partial class HubConnectionContext
             var isAck = true;
             if (isAck)
             {
-                var m = new SerializedHubMessage(message);
-                var bytes = m.GetSerializedMessage(Protocol);
-                return _connectionContext.Transport.Output.WriteAsync(bytes, cancellationToken);
+                return _messageBuffer.WriteAsync(_connectionContext.Transport.Output, new SerializedHubMessage(message), Protocol, cancellationToken);
             }
             else
             {
@@ -287,10 +290,19 @@ public partial class HubConnectionContext
     {
         try
         {
-            // Grab a preserialized buffer for this protocol.
-            var buffer = message.GetSerializedMessage(Protocol);
+            // TODO
+            var isAck = true;
+            if (isAck)
+            {
+                return _messageBuffer.WriteAsync(_connectionContext.Transport.Output, message, Protocol, cancellationToken);
+            }
+            else
+            {
+                // Grab a potentially pre-serialized buffer for this protocol.
+                var buffer = message.GetSerializedMessage(Protocol);
 
-            return _connectionContext.Transport.Output.WriteAsync(buffer, cancellationToken);
+                return _connectionContext.Transport.Output.WriteAsync(buffer, cancellationToken);
+            }
         }
         catch (Exception ex)
         {
@@ -746,6 +758,26 @@ public partial class HubConnectionContext
     internal void Ack(AckMessage ackMessage)
     {
         // Remove from ring buffer
-        // ackMessage.SequenceId
+        _messageBuffer.Ack(ackMessage);
+    }
+
+    private long? GetSequenceId()
+    {
+        if (UseAcks)
+        {
+            return Interlocked.Increment(ref _sequenceId);
+        }
+        return null;
+    }
+
+    internal bool ShouldProcessMessage(HubInvocationMessage message)
+    {
+        if (message.SequenceId <= _latestReceivedSequenceId)
+        {
+            // Ignore, this is a duplicate message
+            return false;
+        }
+        _latestReceivedSequenceId = message.SequenceId!.Value;
+        return true;
     }
 }

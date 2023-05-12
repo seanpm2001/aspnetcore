@@ -71,6 +71,7 @@ public class HubConnectionHandler<THub> : ConnectionHandler where THub : Hub
             _enableDetailedErrors = _hubOptions.EnableDetailedErrors ?? _enableDetailedErrors;
             _maxParallelInvokes = _hubOptions.MaximumParallelInvocationsPerClient;
             disableImplicitFromServiceParameters = _hubOptions.DisableImplicitFromServicesParameters;
+            var _ = _hubOptions.UseAcks;
 
             if (_hubOptions.HubFilters != null)
             {
@@ -83,6 +84,7 @@ public class HubConnectionHandler<THub> : ConnectionHandler where THub : Hub
             _enableDetailedErrors = _globalHubOptions.EnableDetailedErrors ?? _enableDetailedErrors;
             _maxParallelInvokes = _globalHubOptions.MaximumParallelInvocationsPerClient;
             disableImplicitFromServiceParameters = _globalHubOptions.DisableImplicitFromServicesParameters;
+            var _ = _globalHubOptions.UseAcks;
 
             if (_globalHubOptions.HubFilters != null)
             {
@@ -95,6 +97,7 @@ public class HubConnectionHandler<THub> : ConnectionHandler where THub : Hub
             new HubContext<THub>(lifetimeManager),
             _enableDetailedErrors,
             disableImplicitFromServiceParameters,
+            useAcks: true,
             new Logger<DefaultHubDispatcher<THub>>(loggerFactory),
             hubFilters,
             lifetimeManager);
