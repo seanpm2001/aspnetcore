@@ -91,11 +91,11 @@ internal sealed partial class HttpConnectionManager
 
         DuplexPipePair pair;
 
-        if (useAck)
-        {
-            pair = CreateAckConnectionPair(options.TransportPipeOptions, options.AppPipeOptions);
-        }
-        else
+        //if (useAck)
+        //{
+        //    pair = CreateAckConnectionPair(options.TransportPipeOptions, options.AppPipeOptions);
+        //}
+        //else
         {
             pair = DuplexPipe.CreateConnectionPair(options.TransportPipeOptions, options.AppPipeOptions);
         }
