@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.Extensions.ObjectPool;
@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.ObjectPool;
 public abstract class ObjectPoolProvider
 {
     /// <summary>
-    /// Creates an <see cref="ObjectPool"/>.
+    /// Creates an <see cref="ObjectPool{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type to create a pool for.</typeparam>
     public ObjectPool<T> Create<T>() where T : class, new()

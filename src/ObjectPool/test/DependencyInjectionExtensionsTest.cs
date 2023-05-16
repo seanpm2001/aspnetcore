@@ -32,9 +32,9 @@ public class DependencyInjectionExtensionsTest
     [Fact]
     public void AddPool_ServiceTypeOnly_AddsPool()
     {
-        var services = new ServiceCollection().AddPool<TestDependency>();
+        var services = new ServiceCollection().AddObjectPools();
 
-        var sut = services.BuildServiceProvider().GetService<ObjectPool<TestDependency>>();
+        var sut = services.BuildServiceProvider().GetService<IObjectPool<TestDependency>>();
         using var provider = services.BuildServiceProvider();
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PoolOptions>>();
 
@@ -45,9 +45,12 @@ public class DependencyInjectionExtensionsTest
     [Fact]
     public void AddPool_ServiceTypeOnlyWithCapacity_AddsPoolAndSetsCapacity()
     {
-        var services = new ServiceCollection().AddPool<TestDependency>(options => options.Capacity = 64);
+        var services = new ServiceCollection()
+            .AddObjectPools()
+            .Configure<PoolOptions>(typeof(TestDependency).FullName, options => options.Capacity = 64)
+            ;
 
-        var sut = services.BuildServiceProvider().GetService<ObjectPool<TestDependency>>();
+        var sut = services.BuildServiceProvider().GetService<IObjectPool<TestDependency>>();
         using var provider = services.BuildServiceProvider();
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PoolOptions>>();
 
@@ -60,10 +63,11 @@ public class DependencyInjectionExtensionsTest
     {
         var services = new ServiceCollection()
             .AddSingleton<TestDependency>()
-            .AddPool<ITestClass, TestClass>();
+            .AddScoped<ITestClass, TestClass>()
+            .AddObjectPools();
 
         using var provider = services.BuildServiceProvider();
-        var sut = provider.GetService<ObjectPool<ITestClass>>();
+        var sut = provider.GetService<IObjectPool<ITestClass>>();
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PoolOptions>>();
 
         Assert.NotNull(sut);
@@ -76,10 +80,11 @@ public class DependencyInjectionExtensionsTest
     {
         var services = new ServiceCollection()
             .AddSingleton<TestDependency>()
-            .AddPool<ITestClass, TestClass>(options => options.Capacity = 64);
+            .AddScoped<ITestClass, TestClass>()
+            .AddObjectPools().Configure<PoolOptions>(typeof(ITestClass).FullName, options => options.Capacity = 64);
 
         using var provider = services.BuildServiceProvider();
-        var sut = provider.GetService<ObjectPool<ITestClass>>();
+        var sut = provider.GetService<IObjectPool<ITestClass>>();
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PoolOptions>>();
 
         Assert.NotNull(sut);
@@ -92,10 +97,11 @@ public class DependencyInjectionExtensionsTest
     {
         var services = new ServiceCollection()
             .AddSingleton<TestDependency>()
-            .AddPool<ITestClass, TestClass>();
+            .AddScoped<ITestClass, TestClass>()
+            .AddObjectPools();
 
         using var provider = services.BuildServiceProvider();
-        var sut = provider.GetRequiredService<ObjectPool<ITestClass>>();
+        var sut = provider.GetRequiredService<IObjectPool<ITestClass>>();
 
         var pooled = sut.Get();
         sut.Return(pooled);
@@ -104,12 +110,12 @@ public class DependencyInjectionExtensionsTest
     }
 
     [Fact]
-    public void ResolvePooledInstanceDirectly()
+    public void AddPool_SingletonInstances_NotDisposed()
     {
         var services = new ServiceCollection()
             .AddSingleton<TestDependency>()
-            .AddPool<ITestClass, TestClass>()
-            .AddScoped(provider => provider.GetRequiredService<ObjectPool<ITestClass>>().Get())
+            .AddSingleton<ITestClass, TestClass>()
+            .AddObjectPools()
             ;
 
         using var provider = services.BuildServiceProvider();
@@ -118,22 +124,27 @@ public class DependencyInjectionExtensionsTest
 
         using (var scope = provider.CreateScope())
         {
-            resolved = scope.ServiceProvider.GetRequiredService<ITestClass>();
+            resolved = scope.ServiceProvider.GetRequiredService<IObjectPool<ITestClass>>().Get();
         }
 
         Assert.NotNull(resolved);
-        Assert.Equal(1, resolved.DisposedCalled);
+        Assert.Equal(0, resolved.DisposedCalled);
     }
 
     [Fact]
-    public void PooledHelperReturnsScopedInstances_SameScope()
+    public void PooledHelper_ScopedInstance_SamScope()
     {
         var services = new ServiceCollection()
             .AddSingleton<TestDependency>()
-            .AddPool<TestClass>()
-            .AddScoped<Pooled<TestClass>>()
-            .AddScoped<ITestClass>(provider => provider.GetRequiredService<Pooled<TestClass>>().Object)
-            ;
+            .AddObjectPools()
+            .AddScoped<TestClass>()
+            .AddTransient<Pooled<TestClass>>()
+            .AddScoped<ITestClass>(provider =>
+            {
+                var pooled = provider.GetRequiredService<Pooled<TestClass>>();
+                return pooled.Object;
+            });
+        ;
 
         using var provider = services.BuildServiceProvider();
 
@@ -150,21 +161,23 @@ public class DependencyInjectionExtensionsTest
 
         Assert.NotNull(resolved1);
         Assert.NotNull(resolved2);
-        Assert.Same(resolved1, resolved2);
+        Assert.True(resolved1 == resolved2);
 
         Assert.Equal(1, resolved1.DisposedCalled);
         Assert.Equal(1, resolved1.ResetCalled);
     }
 
     [Fact]
-    public void PooledHelperReturnsScopedInstances_DifferentScopes()
+    public void PooledHelper_ScopedInstance_DifferentScopes()
     {
+        // This is an example of what Pooled<T> could look like
+
         var services = new ServiceCollection()
             .AddSingleton<TestDependency>()
-            .AddPool<TestClass>()
-            .AddScoped<Pooled<TestClass>>()
-            .AddScoped<ITestClass>(provider => provider.GetRequiredService<Pooled<TestClass>>().Object)
-            ;
+            .AddObjectPools()
+            .AddScoped<TestClass>()
+            .AddTransient<Pooled<TestClass>>()
+            .AddScoped<ITestClass>(provider => provider.GetRequiredService<Pooled<TestClass>>().Object);
 
         using var provider = services.BuildServiceProvider();
 

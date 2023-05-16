@@ -7,28 +7,23 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.ObjectPool;
 
-internal sealed class DependencyInjectionPooledObjectPolicy<TDefinition, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation> : IPooledObjectPolicy<TDefinition>
+internal sealed class DependencyInjectionPooledObjectPolicy<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TDefinition> : IPooledObjectPolicy<TDefinition>
     where TDefinition : class
-    where TImplementation : class, TDefinition
 {
     private readonly IServiceProvider _provider;
-    private readonly ObjectFactory _factory;
-    private readonly bool _isResettable;
 
     public DependencyInjectionPooledObjectPolicy(IServiceProvider provider)
     {
         _provider = provider;
-        _factory = ActivatorUtilities.CreateFactory(typeof(TImplementation), Type.EmptyTypes);
-        _isResettable = typeof(IResettable).IsAssignableFrom(typeof(TImplementation));
     }
 
-    public TDefinition Create() => (TDefinition)_factory(_provider, Array.Empty<object?>());
+    public TDefinition Create() => _provider.GetRequiredService<TDefinition>();
 
     public bool Return(TDefinition obj)
     {
-        if (_isResettable)
+        if (obj is IResettable resettable)
         {
-            return ((IResettable)obj).TryReset();
+            return resettable.TryReset();
         }
 
         return true;

@@ -1,10 +1,11 @@
-#nullable enable
+Microsoft.Extensions.DependencyInjection.DependencyInjectionExtensions
+Microsoft.Extensions.ObjectPool.IObjectPool<T>
+Microsoft.Extensions.ObjectPool.IObjectPool<T>.Get() -> T!
+Microsoft.Extensions.ObjectPool.IObjectPool<T>.Return(T! obj) -> void
 Microsoft.Extensions.ObjectPool.IResettable
 Microsoft.Extensions.ObjectPool.IResettable.TryReset() -> bool
 Microsoft.Extensions.ObjectPool.PoolOptions
-Microsoft.Extensions.ObjectPool.PoolOptions.PoolOptions() -> void
 Microsoft.Extensions.ObjectPool.PoolOptions.Capacity.get -> int
 Microsoft.Extensions.ObjectPool.PoolOptions.Capacity.set -> void
-Microsoft.Extensions.DependencyInjection.DependencyInjectionExtensions
-static Microsoft.Extensions.DependencyInjection.DependencyInjectionExtensions.AddPool<TDefinition, TImplementation>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Microsoft.Extensions.ObjectPool.PoolOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
-static Microsoft.Extensions.DependencyInjection.DependencyInjectionExtensions.AddPool<TDefinition>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Microsoft.Extensions.ObjectPool.PoolOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+Microsoft.Extensions.ObjectPool.PoolOptions.PoolOptions() -> void
+static Microsoft.Extensions.DependencyInjection.DependencyInjectionExtensions.AddObjectPools(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

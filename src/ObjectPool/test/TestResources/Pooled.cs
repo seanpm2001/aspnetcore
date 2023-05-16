@@ -13,11 +13,11 @@ namespace Microsoft.Extensions.ObjectPool.TestResources;
 public class Pooled<TDefinition> : IDisposable
     where TDefinition : class
 {
-    private readonly ObjectPool<TDefinition> _pool;
+    private readonly IObjectPool<TDefinition> _pool;
 
     public TDefinition Object { get; }
 
-    public Pooled(ObjectPool<TDefinition> pool)
+    public Pooled(IObjectPool<TDefinition> pool)
     {
         _pool = pool;
         Object = pool.Get();
