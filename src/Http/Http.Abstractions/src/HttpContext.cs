@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
-using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Features;
 
@@ -92,10 +91,10 @@ public abstract class HttpContext
             get
             {
                 // Copy features to a new feature collection.
-                // Don't use the FeatureCollection that takes an IFeatureCollection because that just sets defaults.
-                var features = _context.Features.ToArray();
-                var debugView = new FeatureCollection(features.Length);
-                for (var i = 0; i < features.Length; i++)
+                // Don't use FeatureCollection.ctor(IFeatureCollection) because it just sets defaults.
+                var features = new List<KeyValuePair<Type, object>>(_context.Features);
+                var debugView = new FeatureCollection(features.Count);
+                for (var i = 0; i < features.Count; i++)
                 {
                     debugView[features[i].Key] = features[i].Value;
                 }
