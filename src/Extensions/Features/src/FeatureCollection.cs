@@ -141,7 +141,7 @@ public class FeatureCollection : IFeatureCollection
     }
 
     // Used by the debugger. Count over enumerable is required to get the correct value.
-    internal int GetCount() => this.Count();
+    private int GetCount() => this.Count();
 
     private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
     {

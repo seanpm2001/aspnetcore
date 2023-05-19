@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO.Pipelines;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Shared;
 
 namespace Microsoft.AspNetCore.Http;
 
@@ -152,10 +153,9 @@ public abstract class HttpRequest
     /// <returns>The collection of route values for this request.</returns>
     public virtual RouteValueDictionary RouteValues { get; set; } = null!;
 
-    private string DebuggerToString()
+    internal string DebuggerToString()
     {
-        return $"{Protocol} {Method} {Scheme}://{Host.Value}{PathBase.Value}{Path.Value}{QueryString.Value} {ContentType}"
-            + $" Length = {ContentLength?.ToString(CultureInfo.InvariantCulture) ?? "(null)"}";
+        return HttpContextDebugFormatter.RequestToString(this);
     }
 
     private sealed class HttpRequestDebugView(HttpRequest request)

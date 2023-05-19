@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Shared;
 
 namespace Microsoft.AspNetCore.Http;
 
@@ -77,8 +78,7 @@ public abstract class HttpContext
 
     private string DebuggerToString()
     {
-        return $"{Request.Method} {Request.Path.Value} {Request.ContentType}"
-            + $" StatusCode = {Response.StatusCode} {Response.ContentType}";
+        return HttpContextDebugFormatter.ContextToString(this, reasonPhrase: null);
     }
 
     private sealed class HttpContextDebugView(HttpContext context)
