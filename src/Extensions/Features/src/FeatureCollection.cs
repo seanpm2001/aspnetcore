@@ -156,11 +156,11 @@ public class FeatureCollection : IFeatureCollection
         }
     }
 
-    private sealed class FeatureCollectionDebugView(FeatureCollection collection)
+    private sealed class FeatureCollectionDebugView(FeatureCollection features)
     {
-        private readonly FeatureCollection _collection = collection;
+        private readonly FeatureCollection _features = features;
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public KeyValuePair<string, object>[] Items => _collection.Select(pair => new KeyValuePair<string, object>(pair.Key.FullName ?? string.Empty, pair.Value)).ToArray();
+        public KeyValuePair<string, object>[] Items => _features.Select(pair => new KeyValuePair<string, object>(pair.Key.FullName ?? string.Empty, pair.Value)).ToArray();
     }
 }
