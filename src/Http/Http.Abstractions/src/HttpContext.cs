@@ -86,22 +86,7 @@ public abstract class HttpContext
         private readonly HttpContext _context = context;
 
         // Hide server specific implementations, they combine IFeatureCollection and many feature interfaces.
-        public IFeatureCollection Features
-        {
-            get
-            {
-                // Copy features to a new feature collection.
-                // Don't use FeatureCollection.ctor(IFeatureCollection) because it just sets defaults.
-                var features = new List<KeyValuePair<Type, object>>(_context.Features);
-                var debugView = new FeatureCollection(features.Count);
-                for (var i = 0; i < features.Count; i++)
-                {
-                    debugView[features[i].Key] = features[i].Value;
-                }
-                return debugView;
-            }
-        }
-
+        public IFeatureCollection Features => _context.Features as FeatureCollection ?? new FeatureCollection(_context.Features);
         public HttpRequest Request => _context.Request;
         public HttpResponse Response => _context.Response;
         public ConnectionInfo Connection => _context.Connection;

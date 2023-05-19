@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Http.Features;
 /// <summary>
 /// Default implementation for <see cref="IFeatureCollection"/>.
 /// </summary>
-[DebuggerDisplay("Count = {_features?.Count ?? 0}")]
+[DebuggerDisplay("Count = {GetCount()}")]
 [DebuggerTypeProxy(typeof(FeatureCollectionDebugView))]
 public class FeatureCollection : IFeatureCollection
 {
@@ -139,6 +139,9 @@ public class FeatureCollection : IFeatureCollection
     {
         this[typeof(TFeature)] = instance;
     }
+
+    // Used by the debugger. Count over enumerable is required to get the correct value.
+    internal int GetCount() => this.Count();
 
     private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
     {
