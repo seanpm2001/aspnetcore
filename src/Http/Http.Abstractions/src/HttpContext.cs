@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http.Features;
 
@@ -86,7 +87,22 @@ public abstract class HttpContext
         private readonly HttpContext _context = context;
 
         // Hide server specific implementations, they combine IFeatureCollection and many feature interfaces.
-        public IFeatureCollection Features => _context.Features as FeatureCollection ?? new FeatureCollection(_context.Features);
+        public IFeatureCollection Features
+        {
+            get
+            {
+                // Copy features to a new feature collection.
+                // Don't use the FeatureCollection that takes an IFeatureCollection because that just sets defaults.
+                var features = _context.Features.ToArray();
+                var debugView = new FeatureCollection(features.Length);
+                for (var i = 0; i < features.Length; i++)
+                {
+                    debugView[features[i].Key] = features[i].Value;
+                }
+                return debugView;
+            }
+        }
+
         public HttpRequest Request => _context.Request;
         public HttpResponse Response => _context.Response;
         public ConnectionInfo Connection => _context.Connection;
